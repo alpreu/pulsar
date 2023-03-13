@@ -18,6 +18,8 @@
  */
 package org.apache.pulsar.functions.utils.io;
 
+import static com.fasterxml.jackson.dataformat.yaml.YAMLGenerator.Feature.SPLIT_LINES;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.io.File;
 import java.io.IOException;
@@ -221,7 +223,19 @@ public class ConnectorUtils {
 
             connectorBuilder.classLoader(ncl);
             connectorBuilder.connectorDefinition(cntDef);
-            return new AbstractMap.SimpleEntry(cntDef.getName(), connectorBuilder.build());
+            Connector connector = connectorBuilder.build();
+
+
+            String outputName = archive.toString().split("pulsar-io-")[1].split(".nar")[0];
+
+
+            YAMLMapper mapper = new YAMLMapper();
+            mapper.disable(SPLIT_LINES);
+            mapper.writeValue(new File("/Users/alexanderpreuss/Desktop/definitions/"
+                    + outputName), connector);
+
+
+            return new AbstractMap.SimpleEntry(cntDef.getName(), connector);
         } catch (Throwable t) {
             log.warn("Failed to load connector from {}", archive, t);
             return null;
